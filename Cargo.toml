@@ -1,0 +1,9 @@
+[package]
+
+name = "lodepng"
+version = "0.0.1"
+authors = ["Peter Atashian <retep998@gmail.com>"]
+build = "sh build.sh"
+
+[dependencies.image]
+git = "https://github.com/PistonDevelopers/rust-image"
