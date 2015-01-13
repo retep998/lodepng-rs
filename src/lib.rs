@@ -23,6 +23,7 @@ extern {
     ) -> c_uint;
 }
 
+#[derive(Show)]
 pub enum Error {
     Io(IoError),
     Png(&'static str),
@@ -47,7 +48,7 @@ pub fn load(path: &Path) -> Result<ImageBuffer<Vec<u8>, u8, Rgba<u8>>> {
         ) != 0 {
             return Err(Error::Png("Failed to decode png data"))
         }
-        let pixels = Vec::from_raw_buf(outbuf as *mut u8, (width * height) as usize);
+        let pixels = Vec::from_raw_buf(outbuf as *mut u8, (width * height * 4) as usize);
         free(outbuf as *mut c_void);
         match ImageBuffer::from_vec(width, height, pixels) {
             Some(img) => Ok(img),
