@@ -1,6 +1,6 @@
 // Copyright © 2015, Peter Atashian
 
-#![allow(unstable)]
+#![feature(collections, io, libc)]
 
 extern crate image;
 extern crate libc;
@@ -8,10 +8,10 @@ extern crate libc;
 use image::{ImageBuffer, Rgba};
 use libc::{c_uchar, c_uint, c_void, free, size_t};
 use std::error::FromError;
-use std::io::IoError;
-use std::io::fs::File;
+use std::old_io::IoError;
+use std::old_io::fs::File;
 use std::mem::zeroed;
-use std::result::Result as StdResult;
+use std::result::Result;
 
 extern {
     fn lodepng_decode32(
@@ -23,7 +23,7 @@ extern {
     ) -> c_uint;
 }
 
-#[derive(Show)]
+#[derive(Debug)]
 pub enum Error {
     Io(IoError),
     Png(&'static str),
@@ -33,9 +33,8 @@ impl FromError<IoError> for Error {
         Error::Io(err)
     }
 }
-pub type Result<T> = StdResult<T, Error>;
 
-pub fn load(path: &Path) -> Result<ImageBuffer<Vec<u8>, u8, Rgba<u8>>> {
+pub fn load(path: &Path) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, Error> {
     let mut file = File::open(path);
     let data = try!(file.read_to_end());
     unsafe {

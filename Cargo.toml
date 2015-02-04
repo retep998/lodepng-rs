@@ -6,8 +6,8 @@ authors = ["Peter Atashian <retep998@gmail.com>"]
 links = "lodepng"
 build = "build.rs"
 
-[dependencies]
-image = "*"
+[dependencies.image]
+git = "https://github.com/PistonDevelopers/image"
 
 [build-dependencies]
 gcc = "*"
