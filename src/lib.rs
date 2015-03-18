@@ -1,17 +1,17 @@
 // Copyright © 2015, Peter Atashian
 
-#![feature(collections, io, libc)]
+#![feature(collections)]
 
 extern crate image;
 extern crate libc;
 
 use image::{ImageBuffer, Rgba};
 use libc::{c_uchar, c_uint, c_void, free, size_t};
-use std::error::FromError;
-use std::old_io::IoError;
-use std::old_io::fs::File;
+use std::io::Error as IoError;
+use std::io::prelude::*;
+use std::fs::File;
 use std::mem::zeroed;
-use std::result::Result;
+use std::path::Path;
 
 extern {
     fn lodepng_decode32(
@@ -28,15 +28,16 @@ pub enum Error {
     Io(IoError),
     Png(&'static str),
 }
-impl FromError<IoError> for Error {
-    fn from_error(err: IoError) -> Error {
+impl From<IoError> for Error {
+    fn from(err: IoError) -> Error {
         Error::Io(err)
     }
 }
 
 pub fn load(path: &Path) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, Error> {
-    let mut file = File::open(path);
-    let data = try!(file.read_to_end());
+    let mut file = try!(File::open(path));
+    let mut data = Vec::new();
+    try!(file.read_to_end(&mut data));
     unsafe {
         let mut width = zeroed();
         let mut height = zeroed();
