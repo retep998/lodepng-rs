@@ -1,7 +1,5 @@
 // Copyright © 2015, Peter Atashian
 
-#![feature(collections)]
-
 extern crate image;
 extern crate libc;
 
@@ -12,6 +10,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::mem::zeroed;
 use std::path::Path;
+use std::slice::from_raw_parts;
 
 extern {
     fn lodepng_decode32(
@@ -48,7 +47,7 @@ pub fn load(path: &Path) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, Error> {
         ) != 0 {
             return Err(Error::Png("Failed to decode png data"))
         }
-        let pixels = Vec::from_raw_buf(outbuf as *mut u8, (width * height * 4) as usize);
+        let pixels = from_raw_parts(outbuf as *mut u8, (width * height * 4) as usize).to_vec();
         free(outbuf as *mut c_void);
         match ImageBuffer::from_vec(width, height, pixels) {
             Some(img) => Ok(img),
