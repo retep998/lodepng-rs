@@ -5,7 +5,7 @@ extern crate libc;
 
 use image::{GrayImage, ImageBuffer, RgbaImage};
 use libc::{c_uchar, c_uint, c_void, free, size_t};
-use std::io::{ErrorKind, Read};
+use std::io::{ErrorKind, Read, Write};
 use std::fs::File;
 use std::path::Path;
 use std::ptr::null_mut;
@@ -20,20 +20,29 @@ const LCT_GREY: LodePNGColorType = 0;
 
 extern {
     fn lodepng_decode_memory(
-        outbuf: *mut *mut c_uchar,
-        width: *mut c_uint,
-        height: *mut c_uint,
-        inbuf: *const c_uchar,
+        out: *mut *mut c_uchar,
+        w: *mut c_uint,
+        h: *mut c_uint,
+        in_: *const c_uchar,
         insize: size_t,
         colortype: LodePNGColorType,
         bitdepth: c_uint,
     ) -> c_uint;
     fn lodepng_decode32(
-        outbuf: *mut *mut c_uchar,
-        width: *mut c_uint,
-        height: *mut c_uint,
-        inbuf: *const c_uchar,
+        out: *mut *mut c_uchar,
+        w: *mut c_uint,
+        h: *mut c_uint,
+        in_: *const c_uchar,
         insize: size_t,
+    ) -> c_uint;
+    fn lodepng_encode_memory(
+        out: *mut *mut c_uchar,
+        outsize: *mut size_t,
+        image: *const c_uchar,
+        w: c_uint,
+        h: c_uint,
+        colortype: LodePNGColorType,
+        bitdepth: c_uint,
     ) -> c_uint;
 }
 
@@ -82,5 +91,25 @@ pub fn load_gray(path: &Path) -> Result<GrayImage, Error> {
             Some(img) => Ok(img),
             None => Err(Error::new(ErrorKind::Other, "Failed to create image buffer")),
         }
+    }
+}
+pub fn save_gray(path: &Path, img: &GrayImage) -> Result<(), Error> {
+    unsafe {
+        let width = img.width();
+        let height = img.height();
+        let mut size = 0;
+        let mut outbuf = null_mut();
+        if lodepng_encode_memory(
+            &mut outbuf, &mut size,
+            img.as_ptr(), width, height,
+            LCT_GREY, 8,
+        ) != 0 {
+            return Err(Error::new(ErrorKind::Other, "Failed to encode png data"))
+        }
+        let data = from_raw_parts(outbuf as *mut u8, size as usize);
+        let mut file = File::create(path)?;
+        file.write_all(data)?;
+        free(outbuf as *mut c_void);
+        Ok(())
     }
 }
