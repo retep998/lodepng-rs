@@ -1,16 +1,13 @@
 [package]
-
 name = "lodepng"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["Peter Atashian <retep998@gmail.com>"]
 links = "lodepng"
 build = "build.rs"
 
 [dependencies]
-libc = "*"
-
-[dependencies.image]
-git = "https://github.com/PistonDevelopers/image"
+image = { version = "0.17", default-features = false }
+libc = "0.2"
 
 [build-dependencies]
-gcc = "*"
+cc = "1.0"

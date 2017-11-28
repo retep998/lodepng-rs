@@ -1,5 +1,5 @@
-extern crate gcc;
+extern crate cc;
 
 fn main() {
-    gcc::compile_library("liblodepng.a", &["src/lodepng.c"]);
+    cc::Build::new().file("src/lodepng.c").compile("lodepng");
 }
